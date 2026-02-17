@@ -1,56 +1,47 @@
-
 from pydantic import BaseModel, Field
 from datetime import datetime
+from typing import Optional
 import uuid
 from app.models.post import FileType
 
-#  Schema for creating a new post
-# Validates incoming data when user uploads
-# Only needs caption (optional), file comes separately
+# What: Schema for creating a new post
+# Why: Validates incoming data when user uploads
+# How: Only needs caption (optional), file comes separately
 class PostCreate(BaseModel):
-    caption: str | None = Field(
+    # What: Optional[str] is the Python 3.9 way of saying str | None
+    # Why: Caption is not required when uploading
+    caption: Optional[str] = Field(
         None,
         max_length=2000,
         description="Post caption (optional)"
     )
     
-    #  Example for API documentation
-    # Shows developers how to use the API
     model_config = {
         "json_schema_extra": {
             "examples": [
                 {
-                    "caption": "Beautiful sunset at the beach! 🌅"
+                    "caption": "Beautiful sunset at the beach!"
                 }
             ]
         }
     }
 
-#  Schema for API responses (what user gets back)
-#  Includes all post details + author info
-#  Combines post data with user email and ownership flag
+# What: Schema for API responses (what user gets back)
+# Why: Includes all post details + author info
 class PostResponse(BaseModel):
     id: uuid.UUID
-    caption: str | None
+    caption: Optional[str]
     url: str
     file_type: FileType
     created_at: datetime
     user_id: uuid.UUID
+    user_email: str
+    is_owner: bool
     
-    #  Additional fields from relationships
-    #  Frontend needs to show who posted it
-    user_email: str  # From user.email
-    is_owner: bool   # Is current user the creator?
-    
-    #  Enable ORM mode
-    #  Allows Pydantic to read from SQLAlchemy models
-    #  Can do PostResponse.model_validate(post_from_db)
     model_config = {
         "from_attributes": True
     }
 
-#  Simplified schema for feed listing
-#  Feed doesn't need all details, keeps response smaller
-#  Same as PostResponse but could be customized later
+# What: Simplified schema for feed listing
 class PostList(PostResponse):
     pass
